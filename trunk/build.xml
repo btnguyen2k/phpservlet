@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!-- Ant build file for PHPServlet project -->
+<project name="PHPServlet" default="compile">
+	<description>
+		PHPServlet
+    </description>
+
+	<property name="product.name" value="PHPServlet" />
+	<property name="product.version" value="0.1" />
+
+	<!-- directory properties -->
+	<property name="dir.src" value="src" />
+	<property name="dir.temp" value="temp" />
+	<property name="dir.release" value="release" />
+	<property name="dir.resources" value="resources" />
+	<property name="dir.resources.lib" value="${dir.resources}/lib" />
+	<property name="dir.classes" value="classes" />
+	<property name="dir.web" value="web" />
+	<property name="dir.web.WEB_INF" value="${dir.web}/WEB-INF" />
+	<property name="dir.web.WEB_INF.classes" value="${dir.web.WEB_INF}/classes" />
+	<property name="dir.web.WEB_INF.lib" value="${dir.web.WEB_INF}/lib" />
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="${dir.resources.lib}/ant-contrib-1.0b3.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- Create the time stamp -->
+	<tstamp />
+
+	<mkdir dir="${dir.release}" />
+	<mkdir dir="${dir.classes}" />
+	<mkdir dir="${dir.temp}" />
+
+	<target name="release" depends="compile" description="Release PHPServlet project">
+	</target>
+
+	<target name="compile" description="Compile Java source files">
+		<javac srcdir="${dir.src}" destdir="${dir.classes}" encoding="utf-8"
+			optimize="on" debug="on" fork="true" compiler="modern" source="1.5"
+			target="1.5">
+			<classpath>
+				<fileset dir="${dir.resources.lib}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${dir.web.WEB_INF.lib}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+
+		<!-- copy resource files -->
+		<copy todir="${dir.classes}">
+			<fileset dir="${dir.src}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+
+		<delete>
+			<fileset dir="${dir.web.WEB_INF.lib}">
+				<include name="**/${product.name}-*.jar" />
+			</fileset>
+		</delete>
+		<jar jarfile="${dir.web.WEB_INF.lib}/${product.name}-${product.version}.jar"
+			basedir="${dir.classes}">
+			<metainf dir="web/META-INF">
+			</metainf>
+		</jar>
+	</target>
+</project>
