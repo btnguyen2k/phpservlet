@@ -26,7 +26,8 @@ public class PhpFilter implements Filter {
 	private String quercusServletName = "QuercusServlet";
 	private String contextPath;
 	private ServletContext servletContext;
-	private ConcurrentMap<String, PhpScriptInfo> cache;
+	private ConcurrentMap<String, Boolean> cache;
+	private ConcurrentMap<String, PhpScriptInfo> cache2;
 
 	/**
 	 * {@inheritDoc}
@@ -52,6 +53,15 @@ public class PhpFilter implements Filter {
 		}
 		cache = new MapMaker().concurrencyLevel(4).maximumSize(1024)
 				.expireAfterWrite(5, TimeUnit.MINUTES).makeMap();
+		cache2 = new MapMaker().concurrencyLevel(4).maximumSize(10240)
+				.expireAfterWrite(5, TimeUnit.MINUTES).makeMap();
+	}
+
+	private PhpScriptInfo buildLevel2CacheEntry(String resourcePath,
+			String pathInfo) {
+		PhpScriptInfo phpScriptInfo = new PhpScriptInfo(resourcePath, pathInfo);
+		cache2.put(resourcePath, phpScriptInfo);
+		return phpScriptInfo;
 	}
 
 	/**
@@ -70,13 +80,22 @@ public class PhpFilter implements Filter {
 		String resourcePath = StringUtils.substringAfter(requestUri,
 				contextPath);
 
+		// check level 2 cache first
+		PhpScriptInfo cacheValue2 = cache2.get(resourcePath);
+		if (cacheValue2 != null) {
+			return cacheValue2;
+		}
+
 		String[] tokens = StringUtils.split(resourcePath, '/');
 		// check longest path first!
 		int index = tokens.length - 1;
 		do {
-			String cacheValue = cache.get(resourcePath);
+			String pathInfo = StringUtils.substringAfter(requestUri,
+					resourcePath);
+			Boolean cacheValue = cache.get(resourcePath);
 			if (cacheValue != null) {
-				return !cacheValue.equals("") ? cacheValue : null;
+				return cacheValue ? buildLevel2CacheEntry(resourcePath,
+						pathInfo) : null;
 			}
 			URL resource = servletContext.getResource(resourcePath);
 			if (resource == null) {
@@ -87,16 +106,17 @@ public class PhpFilter implements Filter {
 				index--;
 				continue;
 			}
-			// found a resource
+			// the request should invoke a resource
 			if (resourcePath.toLowerCase().endsWith(".php")) {
 				// it's PHP script
-				cacheValue = resourcePath;
+				cacheValue = Boolean.TRUE;
 			} else {
 				// it's not
-				cacheValue = "";
+				cacheValue = Boolean.FALSE;
 			}
 			cache.put(resourcePath, cacheValue);
-			return !cacheValue.equals("") ? cacheValue : null;
+			return cacheValue ? buildLevel2CacheEntry(resourcePath, pathInfo)
+					: null;
 		} while (index >= 0);
 		return null;
 	}
@@ -108,12 +128,16 @@ public class PhpFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws ServletException, IOException {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
-		String phpScript = isPhpRequest(httpRequest);
-		if (phpScript != null) {
+		PhpScriptInfo phpScriptInfo = isPhpRequest(httpRequest);
+		if (phpScriptInfo != null) {
+			String pathInfo = phpScriptInfo.getPathInfo();
+			if (!StringUtils.isEmpty(pathInfo)) {
+				request.setAttribute(Constants.REQ_ATTR_PATH_INFO, pathInfo);
+			}
 			RequestDispatcher dispatcher = servletContext
 					.getNamedDispatcher(quercusServletName);
 			// RequestDispatcher dispatcher = servletContext
-			// .getRequestDispatcher(phpScript);
+			// .getRequestDispatcher(phpScriptInfo.getScriptPath());
 			dispatcher.forward(request, response);
 		} else {
 			chain.doFilter(request, response);
