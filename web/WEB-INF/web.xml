@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app id="WebApp_ID" version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+	<display-name>Quercus - Caucho Technology's PHP Implementation</display-name>
+
+	<description>
+		Caucho Technology's PHP Implementation
+    </description>
+
+	<filter>
+		<filter-name>PhpFileFilter</filter-name>
+		<filter-class>org.ddth.phpservlet.PhpFilter</filter-class>
+		<init-param>
+			<param-name>quercusServletName</param-name>
+			<param-value>QuercusServlet</param-value>
+		</init-param>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>PhpFileFilter</filter-name>
+		<url-pattern>*</url-pattern>
+	</filter-mapping>
+
+	<servlet>
+		<servlet-name>QuercusServlet</servlet-name>
+		<servlet-class>org.ddth.phpservlet.PhpServlet</servlet-class>
+		<init-param>
+			<param-name>script-encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+
+		<!--
+			Tells Quercus to use the following JDBC database and to ignore the
+			arguments of mysql_connect().
+		-->
+		<!--
+			<init-param> <param-name>database</param-name>
+			<param-value>jdbc/test</param-value> </init-param>
+		-->
+
+		<init-param>
+			<param-name>ini-file</param-name>
+			<param-value>WEB-INF/php.ini</param-value>
+		</init-param>
+
+		<!--
+			Location of the license to enable php to java compilation.
+		-->
+		<!--
+			<init-param> <param-name> license-directory </param-name>
+			<param-value> WEB-INF/licenses </param-value> </init-param>
+		-->
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>QuercusServlet</servlet-name>
+		<url-pattern>*.php</url-pattern>
+	</servlet-mapping>
+
+	<welcome-file-list>
+		<welcome-file>index.php</welcome-file>
+	</welcome-file-list>
+</web-app>
