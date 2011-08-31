@@ -27,6 +27,7 @@
 
 	<servlet>
 		<servlet-name>QuercusServlet</servlet-name>
+		<!-- <servlet-class>com.caucho.quercus.servlet.QuercusServlet</servlet-class> -->
 		<servlet-class>org.ddth.phpservlet.PhpServlet</servlet-class>
 		<init-param>
 			<param-name>script-encoding</param-name>
@@ -60,11 +61,15 @@
 		-->
 	</servlet>
 
-	<!--
-		<servlet-mapping> <servlet-name>QuercusServlet</servlet-name>
-		<url-pattern> *.php </url-pattern> </servlet-mapping>
-		<servlet-mapping> <servlet-name>QuercusServlet</servlet-name>
-		<url-pattern> /index.php/* </url-pattern> </servlet-mapping>
+	<!-- 
+	<servlet-mapping>
+		<servlet-name>QuercusServlet</servlet-name>
+		<url-pattern>*.php</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>QuercusServlet</servlet-name>
+		<url-pattern>/index.php/*</url-pattern>
+	</servlet-mapping>
 	-->
 
 	<welcome-file-list>
