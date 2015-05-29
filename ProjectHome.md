@@ -1,0 +1,1 @@
+PHPServlet allows PHP scripts to run on Quercus with less headache configurations.
